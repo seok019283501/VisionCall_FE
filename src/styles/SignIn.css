@@ -1,0 +1,77 @@
+.sign-in-up-container{
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sign-in-up-in-sub-container{
+  width: 494px;
+  height: 667px;
+  background-color: #F2F2F2;
+  border: 0.5px solid gray;
+  border-radius: 4px;
+  box-shadow: 0 10px 10px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+}
+
+.sign-in-up-sub-title-container{
+  width: 494px;
+  height: 144px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sign-in-up-sub-title{
+  font-size: 40px;
+}
+
+.sign-in-input-container{
+  display: grid;
+  grid-template-rows: 1 1 1;
+  width: 492px;
+  height: 379px;
+}
+
+.sign-in-input{
+  width: 373px;
+  height: 56px;
+  margin: auto;
+  border-radius: 10px;
+  border: 1px solid gray;
+  font-size: 20px;
+}
+
+.sign-in-up-button{
+  margin: auto;
+  width: 373px;
+  height: 70px;
+  background-color: #8ABEFF;
+  border-radius: 10px;
+  border: 1px solid gray;
+  cursor: pointer;
+  font-size: 32px;
+}
+
+.sign-in-up-button:active{
+  opacity: .7;
+}
+.sign-in-url{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sign-in-url-password{
+  cursor: pointer;
+}
+.sign-in-url-sign-up{
+  cursor: pointer;
+}
+.sign-in-error-message{
+  width: 494px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: red;
+}
