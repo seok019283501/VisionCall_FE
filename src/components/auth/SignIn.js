@@ -59,7 +59,7 @@ const SignIn = (props) =>{
             <div className='sign-in-url-sign-up'>회원가입</div>
           </div>
           {errorMessage && (
-            <div className="sign-in-error-message">{errorMessage}</div>
+            <div className="sign-error-message">{errorMessage}</div>
           )}
         </div>
       </div>

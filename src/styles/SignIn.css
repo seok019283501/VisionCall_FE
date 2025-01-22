@@ -68,7 +68,7 @@
 .sign-in-url-sign-up{
   cursor: pointer;
 }
-.sign-in-error-message{
+.sign-error-message{
   width: 494px;
   display: flex;
   align-items: center;
