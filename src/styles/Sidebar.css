@@ -1,3 +1,4 @@
+
 .sidebar-container{
   width: 312px;
   height: 860px;
@@ -37,12 +38,13 @@
 }
 .sidebar-item-list-container{
   width: 312px;
-  height: 703px;
+  height: 731px;
+  background-color:rgb(255, 255, 255);
 }
 .sidebar-setting-button{
   width: 312px;
   height: 43px;
-  background-color: #D9D9D9;
+  background-color: #ffffff;
 }
 .sidebar-setting-button:active{
   opacity: 0.7;

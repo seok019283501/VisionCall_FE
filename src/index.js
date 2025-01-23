@@ -3,8 +3,44 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import axios from "axios";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+axios.interceptors.response.use(
+    (res)=>{
+  
+      return res;
+  
+    },
+    async (err)=>{
+        const refresh_token = localStorage.getItem("refresh_token");
+      console.log(window.api.get("get-cookies",'refreshToken'));
+      if(err.response.status===401){
+        await axios.post("/api/auth/reissue-token" ,{},{
+          headers: {
+            Authorization: `${refresh_token}`
+        }}).then(async(res)=>{
+          
+            localStorage.setItem("access_token",res.data.body.access_token);
+        }).catch((err)=>{
+          console.log(err);
+          window.location.replace('/sign-in');
+  
+        });
+        const access_token = localStorage.getItem("access_token");
+  
+        err.config.headers = {
+          'Content-Type': 'application/json',
+          Authorization: `${access_token}`,
+        };
+  
+        // 중단된 요청을(에러난 요청)을 토큰 갱신 후 재요청
+        const response = await axios.request(err.config);
+        return response;
+      }
+      return Promise.reject(err);
+    }
+  )
 root.render(
     <App />
 );
