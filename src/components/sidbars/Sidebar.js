@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext, useCallback } from 'react';
 import axios from "axios";
 import '../../styles/Sidebar.css'
+import FriendList from './FriendList';
 
 const Sidebar = (props) =>{
   const rest_api_url = process.env.REACT_APP_REST_API_URL;
@@ -30,7 +31,7 @@ const Sidebar = (props) =>{
             <input className='sidebar-button' type='button' value='친구 목록'/>
           </div>
           <div className='sidebar-item-list-container'>
-
+            <FriendList/>
           </div>
           <input className='sidebar-setting-button' type='button' value='설정'/>
         </div>
