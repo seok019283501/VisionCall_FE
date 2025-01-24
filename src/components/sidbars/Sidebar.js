@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext, useCallback } from 'react';
 import axios from "axios";
 import '../../styles/Sidebar.css'
-import FriendList from './FriendList';
+import FriendList from './friend/FriendList';
 
 const Sidebar = (props) =>{
   const rest_api_url = process.env.REACT_APP_REST_API_URL;
