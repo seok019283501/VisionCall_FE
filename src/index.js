@@ -14,7 +14,6 @@ axios.interceptors.response.use(
     },
     async (err)=>{
         const refresh_token = localStorage.getItem("refresh_token");
-      console.log(window.api.get("get-cookies",'refreshToken'));
       if(err.response.status===401){
         await axios.post("/api/auth/reissue-token" ,{},{
           headers: {
