@@ -9,10 +9,13 @@ const VisionCallProvider = (props) =>{
   //친구 목록
   const [friendList, setFriendList] = useState([]);
 
-  //친구 목록 조회
-  const handleFriendListSearch = (nickname) => {
+  //방 목록
+  const [callRoomList, setCallRoomList] = useState([]);
 
-    axios.get((`${rest_api_url}/api/friend?nickname=${nickname}`),{
+  //친구 목록 조회
+  const handleFriendListSearch = async (nickname) => {
+
+    await axios.get((`${rest_api_url}/api/friend?nickname=${nickname}`),{
       headers:{
         Authorization: access_token
       }
@@ -24,8 +27,23 @@ const VisionCallProvider = (props) =>{
     })
   }
 
+  //통화방 목록 조회
+  const handleCallRoomListSearch = async (search) => {
+
+    await axios.get((`${rest_api_url}/api/call-room?search=${search}`),{
+      headers:{
+        Authorization: access_token
+      }
+    }).then(res=>{
+      console.log(res.data.body);
+      setCallRoomList(res.data.body.call_room_list);
+    }).catch(err=>{
+      console.log(err);
+    })
+  }
+
   return (
-    <VisionCallContext.Provider value={{friendList, handleFriendListSearch}}>
+    <VisionCallContext.Provider value={{friendList, handleFriendListSearch, callRoomList, handleCallRoomListSearch}}>
         {props.children}
     </VisionCallContext.Provider>
   );

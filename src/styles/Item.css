@@ -1,4 +1,4 @@
-.freind-item-container{
+.item-container{
   width: 290px;
   margin-left: 5px;
   margin-top: 10px;
@@ -10,26 +10,26 @@
   justify-content: center;
   align-items: center;
 }
-.freind-item-sub-container{
+.item-sub-container{
   width: 270px;
   display: flex;
 }
-.friend-item-on-off-line{
+.item-on-off-line{
   width: 20px;
   height: 20px;
   background-color: red;
   border-radius: 10px;
 }
-.friend-item-nickname-container{
+.item-nickname-container{
   width: 250px;
   display: flex;
   align-items: center;
   justify-content: space-around;
 }
-.friend-item-nickname{
+.item-nickname{
   font-size: 20px;
 }
 
-.freind-item-sub-container:active{
+.item-sub-container:active{
   opacity: 0.7;
 }

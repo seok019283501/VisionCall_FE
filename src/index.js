@@ -14,7 +14,8 @@ axios.interceptors.response.use(
   
     },
     async (err)=>{
-      
+      console.log("Error:", err.response.status);
+      console.log("Error data:", err.response.data);
       const refresh_token = localStorage.getItem("refresh_token");
       console.log(refresh_token)
       if(err.response.status===401){
