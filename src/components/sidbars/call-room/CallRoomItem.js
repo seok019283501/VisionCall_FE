@@ -2,28 +2,19 @@ import { useEffect, useState, useContext, useCallback } from 'react';
 import axios from "axios";
 import '../../../styles/Item.css'
 
-const FriendItem = (props) =>{
+const CallRoomItem = (props) =>{
   
-  const {key,friend_info} = props;
+  const {key,call_room_info} = props;
   
 
   return (
     <>
       <div className="item-container" key={key}>
         <div className='item-sub-container'>
-          <div className='item-on-off-line'/>
             <div className='item-nickname-container'>
               <div className='item-nickname'>
-                {friend_info.nickname}
+                {call_room_info.room_name}
               </div>
-              {
-                friend_info.friend_status === "REQUEST" ?
-                  <div>
-                    추가 중
-                  </div>
-                  : null
-              }
-              
             </div>
         </div>
          
@@ -32,4 +23,4 @@ const FriendItem = (props) =>{
   );
 }
 
-export default FriendItem;
+export default CallRoomItem;
