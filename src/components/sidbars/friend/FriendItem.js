@@ -16,6 +16,14 @@ const FriendItem = (props) =>{
               <div className='friend-item-nickname'>
                 {friend_info.nickname}
               </div>
+              {
+                friend_info.friend_status === "REQUEST" ?
+                  <div>
+                    추가 중
+                  </div>
+                  : null
+              }
+              
             </div>
         </div>
          
