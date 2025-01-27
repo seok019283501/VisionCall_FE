@@ -2,6 +2,7 @@ import VisionCallProvider from './components/provider/VisionCallProvider';
 import SignIn from './components/auth/SignIn';
 import SignUp from './components/auth/SignUp';
 import Sidebar from './components/sidbars/Sidebar';
+import CallRoom from './components/call-room/CallRoom';
 import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
 import './App.css'
 const App = () => {
@@ -27,6 +28,7 @@ const MainLayout = () => {
       <Routes>
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/sign-up" element={<SignUp />} />
+        <Route path='/call-room/:room_number' element={<CallRoom/>}/>
       </Routes>
     </div>
   );

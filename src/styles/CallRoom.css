@@ -1,0 +1,60 @@
+.call-room-container{
+  width: 100%;
+  height: 861px;
+
+}
+.call-room-user-container {
+  width: 1367px;
+  height: 503px; /* 높이 고정 */
+  background-color: #D9D9D9;
+  display: flex;
+  flex-wrap: wrap; /* 여러 줄로 배치 */
+  gap: 10px; /* 아이템 간 간격 */
+  padding: 10px 0 10px 0;
+  justify-content: center; /* 아이템을 가로로 가운데 정렬 */
+  align-items: center; /* 아이템을 세로로 가운데 정렬 */
+  overflow-y: auto; /* 세로 스크롤 추가 */
+}
+.call-room-chat-container {
+  width: 1347px;
+  height: 250px;
+  padding: 10px;
+  display:flex;
+  flex-direction: column-reverse;
+  overflow-y:auto;
+}
+
+.call-room-chat-input-container{
+  width: 100%;
+  height: 68px;
+  display: flex;
+}
+.chat{
+  width: 1260px;
+  height: 62px;
+}
+.chat-send-button{
+  width: 98px;
+  height: 68px;
+  background-color: #8ABEFF;
+  color: white; /* 텍스트 색상 */
+}
+.chat-send-button:active{
+  opacity: 0.7;
+}
+.invite-member {
+  position: absolute; /* 부모 요소(.call-room-container)를 기준으로 배치 */
+  top: 10px; /* 위쪽 여백 */
+  right: 10px; /* 오른쪽 여백 */
+  background-color: #8ABEFF; /* 배경색 */
+  color: white; /* 텍스트 색상 */
+  padding: 8px 16px; /* 내부 여백 */
+  border-radius: 8px; /* 둥근 모서리 */
+  font-size: 14px; /* 텍스트 크기 */
+  cursor: pointer; /* 클릭 가능한 커서 */
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* 약간의 그림자 */
+}
+
+.invite-member:hover {
+  background-color: #6aa7d8; /* 호버 시 배경색 */
+}

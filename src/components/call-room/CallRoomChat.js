@@ -1,0 +1,21 @@
+import { useEffect, useState, useContext, useCallback } from 'react';
+import axios from "axios";
+import '../../styles/CallRoomChat.css'
+import VisionCallContext from '../provider/VisionCallContext';
+
+const CallRoomChat = (props) =>{
+  return (
+    <>
+      <div className="call-room-chat-item-container">
+        <div className='call-room-chat-nickname'>
+          test
+        </div>
+        <div className='call-room-chat-text'>
+adsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdafadsfsdaf
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default CallRoomChat;

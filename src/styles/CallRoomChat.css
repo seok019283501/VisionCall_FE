@@ -1,0 +1,23 @@
+.call-room-chat-item-container{
+  width: 100%;
+  height: auto;
+  border: 0.7px solid gray;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  display: flex;
+}
+
+.call-room-chat-nickname{
+  width: 92px;
+  height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.call-room-chat-text{
+  display: flex;
+  align-items: center;
+  width: 1275px;
+  overflow-wrap: anywhere;
+
+}
