@@ -4,31 +4,34 @@ import '../../styles/CallRoom.css'
 import VisionCallContext from '../provider/VisionCallContext';
 import CallRoomUser from './CallRoomUser';
 import CallRoomChat from './CallRoomChat';
-import CallRoomInvite from '../common/CallRoomInvite';
+import { useParams } from 'react-router-dom';
 
 const CallRoom = (props) =>{
   const rest_api_url = process.env.REACT_APP_REST_API_URL;
   const access_token = localStorage.getItem("access_token");
   const [visible, setVisible] = useState(false);
-  const {callRoomList, handleCallRoomListSearch} = useContext(VisionCallContext);
-  
+  const {handleRoomNumber, handleRoomMemberList, roomMember} = useContext(VisionCallContext);
+  const { room_number } = useParams();
+
   const handleVisible = (bool) =>{
     setVisible(bool)
   }
+
+  useEffect(()=>{
+    handleRoomMemberList(room_number);
+  },[room_number])
+
 
   
   return (
     <>
       <div className="call-room-container">
-          {visible ? <CallRoomInvite handleVisible={handleVisible}/> : null}
-          <div className='invite-member' onClick={()=>{handleVisible(true)}}>참여자 초대</div>
           <div className='call-room-user-container'>
-            <CallRoomUser/>
-            <CallRoomUser/>
-            <CallRoomUser/>
-            <CallRoomUser/>
-            <CallRoomUser/>
-            <CallRoomUser/>
+          {
+              roomMember.map((item,index)=>(
+                <CallRoomUser key={index} call_room_member_info={item}/>
+              ))
+            }
           </div>
           <div className='call-room-chat-container'>
             <CallRoomChat/>
