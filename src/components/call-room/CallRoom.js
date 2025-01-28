@@ -1,4 +1,3 @@
-// src/components/call/CallRoom.js
 import React, { useEffect, useRef, useState, useContext } from 'react';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
@@ -21,7 +20,7 @@ const CallRoom = () => {
   // Context에서 제공하는 함수/멤버 (방 멤버 목록)
   const { handleRoomMemberList, roomMember } = useContext(VisionCallContext);
 
-  // **내 userId를 저장**할 state
+  // **내 userId**를 저장
   const [myUserId, setMyUserId] = useState(null);
 
   // STOMP 클라이언트
@@ -33,24 +32,20 @@ const CallRoom = () => {
   // peerConnectionsRef: { [상대방 userId]: RTCPeerConnection }
   const peerConnectionsRef = useRef({});
 
-  // 아직 remoteDescription이 세팅되지 않은 상태에서 도착한 ICE를 임시 보관
-  // 예: { [senderUserId]: [candidate1, candidate2, ...] }
+  // ICE Candidate 버퍼링: { [senderUserId]: [candidate1, candidate2,...] }
   const pendingCandidatesRef = useRef({});
 
-  //----------------------------------------------------------------------
-  // 1) 컴포넌트 초기화:
-  //    - 내 회원 아이디 조회 -> 방 멤버 목록 조회 -> 로컬 스트림 획득 -> STOMP 연결
-  //----------------------------------------------------------------------
+  //--------------------------------------------------------
+  // 1) 컴포넌트 초기화
+  //--------------------------------------------------------
   useEffect(() => {
     const init = async () => {
       try {
         // 1. 내 회원 아이디 조회
         const res = await axios.get(`${rest_api_url}/api/member`, {
-          headers: {
-            Authorization: access_token,
-          },
+          headers: { Authorization: access_token },
         });
-        const user_id = res.data.body.member_id; // 백엔드 응답 구조에 맞게
+        const user_id = res.data.body.member_id;
         setMyUserId(user_id);
 
         // 2. 방 멤버 목록 조회
@@ -60,42 +55,37 @@ const CallRoom = () => {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localStreamRef.current = stream;
 
-        // 내 로컬 영상 태그에 stream 주입
+        // 로컬 영상 <video>에 stream 연결
         const myVideo = document.getElementById('myLocalVideo');
         if (myVideo) {
           myVideo.srcObject = stream;
         }
 
-        // 4. STOMP(WebSocket) 연결
+        // 4. STOMP 연결
         connectStomp(user_id);
       } catch (err) {
         console.error('Error in init:', err);
       }
     };
-
     init();
 
-    // 언마운트 시 정리
+    // 언마운트 시 PeerConnection, STOMP 정리
     return () => {
-      // PeerConnection 종료
-      Object.values(peerConnectionsRef.current).forEach((pc) => {
-        pc.close();
-      });
+      Object.values(peerConnectionsRef.current).forEach((pc) => pc.close());
       peerConnectionsRef.current = {};
 
-      // STOMP 종료
       if (stompClient) {
         stompClient.deactivate();
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [room_number]); // room_number 변경 시 재호출
+  }, [room_number]);
 
-  //----------------------------------------------------------------------
-  // 2) STOMP 연결 함수
-  //----------------------------------------------------------------------
+  //--------------------------------------------------------
+  // 2) STOMP 연결
+  //--------------------------------------------------------
   const connectStomp = (userId) => {
-    const signalingUrl = `${rest_api_url}/ws`; 
+    const signalingUrl = `${rest_api_url}/ws`;
 
     const socket = new SockJS(signalingUrl);
     const client = new Client({
@@ -104,7 +94,13 @@ const CallRoom = () => {
       onConnect: () => {
         console.log('STOMP connected');
 
-        // 2-1) 구독
+        // 2-1) 구독: Notice (새 유저 입장 알림)
+        client.subscribe(`/sub/notice/${room_number}`, (message) => {
+          const data = JSON.parse(message.body);
+          handleReceiveNotice(data);
+        });
+
+        // 2-2) 구독: Offer, Answer, ICE
         client.subscribe(`/sub/offer/${room_number}`, (message) => {
           const data = JSON.parse(message.body);
           handleReceiveOffer(data);
@@ -120,9 +116,19 @@ const CallRoom = () => {
           handleReceiveCandidate(data);
         });
 
-        // 2-2) 방에 들어온 후, 다른 유저에게 Offer를 보낼지 말지 결정
-        //      여기서는 예시로 "나를 제외한 모든 유저에게 Offer 보낸다"
-        sendOfferToOthers();
+        // [방법 B] "내가 새로 들어온 유저"라면 notice 발행
+        // (기존 유저도 같은 코드가 실행되지만, 굳이 상관은 없음.
+        //  이 로직은 "나는 새로운 유저"라고 서버/방 전체에 알리는 역할)
+        client.publish({
+          destination: `/pub/notice/${room_number}`,
+          body: JSON.stringify({
+            notice: 'join',
+            userId: userId,
+          }),
+        });
+
+        // [주의] 기존 코드의 "sendOfferToOthers()"는 제거/주석
+        // (방법 B에서는 "후입장자가 아닌, 기존 유저가 offer를 보냄")
       },
       onStompError: (frame) => {
         console.error('STOMP error:', frame);
@@ -133,32 +139,34 @@ const CallRoom = () => {
     setStompClient(client);
   };
 
-  //----------------------------------------------------------------------
-  // 3) 나를 제외한 모든 유저에게 Offer 생성 & 전송
-  //----------------------------------------------------------------------
-  const sendOfferToOthers = async () => {
-    if (!stompClient || !localStreamRef.current || !myUserId) return;
-    if (!roomMember || roomMember.length < 2) return;
+  //--------------------------------------------------------
+  // 3) Notice 수신 (새 유저가 들어왔다는 알림)
+  //--------------------------------------------------------
+  const handleReceiveNotice = (data) => {
+    const { notice, userId: newUserId } = data;
+    // 예: { notice: 'join', userId: 'abc' }
 
-    for (const member of roomMember) {
-      // member.member_id 로 백엔드가 식별자를 준다고 가정
-      if (member.member_id === myUserId) continue; // 자기 자신은 제외
-      const remoteUserId = member.member_id;
-      await createOffer(remoteUserId);
+    // 만약 notice='join'이고, newUserId != myUserId => "내가" Offer를 보낸다(기존 유저 -> 새 유저)
+    if (notice === 'join' && newUserId !== myUserId) {
+      console.log(`[NOTICE] 새 유저(${newUserId})가 들어옴 → 내가 Offer 보냄`);
+      createOffer(newUserId);
     }
   };
 
-  //----------------------------------------------------------------------
-  // 4) createOffer
-  //----------------------------------------------------------------------
+  //--------------------------------------------------------
+  // 4) createOffer (기존 유저가 새 유저에게 Offer)
+  //--------------------------------------------------------
   const createOffer = async (remoteUserId) => {
+    if (!stompClient) {
+      console.warn('createOffer called but no stompClient. Maybe not connected yet?');
+      return;
+    }
     const pc = createPeerConnection(remoteUserId);
-
     try {
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
 
-      // Offer 전송
+      // Offer 전송: sender=me, receiver=remoteUser
       stompClient.publish({
         destination: `/pub/offer/${room_number}`,
         body: JSON.stringify({
@@ -172,11 +180,11 @@ const CallRoom = () => {
     }
   };
 
-  //----------------------------------------------------------------------
-  // 5) createPeerConnection (공통 함수)
-  //----------------------------------------------------------------------
+  //--------------------------------------------------------
+  // 5) createPeerConnection
+  //--------------------------------------------------------
   const createPeerConnection = (remoteUserId) => {
-    // 이미 PC가 있으면 재사용
+    // 이미 있으면 재활용
     if (peerConnectionsRef.current[remoteUserId]) {
       return peerConnectionsRef.current[remoteUserId];
     }
@@ -188,8 +196,12 @@ const CallRoom = () => {
       ],
     });
 
-    // onicecandidate: ICE Candidate를 STOMP로 전송
+    // ICE candidate → STOMP 전송
     pc.onicecandidate = (event) => {
+      if (!stompClient) {
+        console.warn('onicecandidate fired but no stompClient. Skip publishing ICE...');
+        return;
+      }
       if (event.candidate) {
         stompClient.publish({
           destination: `/pub/ice-candidate/${room_number}`,
@@ -202,7 +214,7 @@ const CallRoom = () => {
       }
     };
 
-    // ontrack: 상대방 트랙을 수신하면 해당 video 태그에 stream 할당
+    // remote track → <video> 태그에 연결
     pc.ontrack = (event) => {
       const [remoteStream] = event.streams;
       const remoteVideo = document.getElementById(`remoteVideo-${remoteUserId}`);
@@ -211,7 +223,7 @@ const CallRoom = () => {
       }
     };
 
-    // 로컬 스트림을 PeerConnection에 추가
+    // 로컬 스트림을 pc에 추가
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => {
         pc.addTrack(track, localStreamRef.current);
@@ -222,21 +234,22 @@ const CallRoom = () => {
     return pc;
   };
 
-  //----------------------------------------------------------------------
+  //--------------------------------------------------------
   // 6) handleReceiveOffer
-  //----------------------------------------------------------------------
+  //--------------------------------------------------------
   const handleReceiveOffer = async (data) => {
     const { sdp, sender, receiver } = data;
-    if (!myUserId || receiver !== myUserId) return; // 내게 온 offer만 처리
+    if (!myUserId || receiver !== myUserId) return;
 
     console.log("Received Offer:", data);
 
     const pc = createPeerConnection(sender);
+
     try {
-      // 먼저 RemoteDescription 세팅
+      // remoteDescription 세팅
       await pc.setRemoteDescription(new RTCSessionDescription(sdp));
 
-      // 만약 아직 버퍼링된 ICE candidate가 있다면, 지금 처리
+      // 버퍼링된 candidate가 있으면 여기서 add
       if (pendingCandidatesRef.current[sender]) {
         for (const c of pendingCandidatesRef.current[sender]) {
           try {
@@ -265,9 +278,9 @@ const CallRoom = () => {
     }
   };
 
-  //----------------------------------------------------------------------
+  //--------------------------------------------------------
   // 7) handleReceiveAnswer
-  //----------------------------------------------------------------------
+  //--------------------------------------------------------
   const handleReceiveAnswer = async (data) => {
     const { sdp, sender, receiver } = data;
     if (!myUserId || receiver !== myUserId) return;
@@ -283,7 +296,7 @@ const CallRoom = () => {
     try {
       await pc.setRemoteDescription(new RTCSessionDescription(sdp));
 
-      // 만약 버퍼링된 ICE candidate가 있다면, 여기서 처리
+      // 버퍼링된 candidate 처리
       if (pendingCandidatesRef.current[sender]) {
         for (const c of pendingCandidatesRef.current[sender]) {
           try {
@@ -299,16 +312,13 @@ const CallRoom = () => {
     }
   };
 
-  //----------------------------------------------------------------------
+  //--------------------------------------------------------
   // 8) handleReceiveCandidate
-  //----------------------------------------------------------------------
+  //--------------------------------------------------------
   const handleReceiveCandidate = async (data) => {
     const { candidate, sender, receiver } = data;
+    if (!myUserId || receiver !== myUserId) return;
 
-    // 내게 온 candidate만 처리
-    if (!myUserId || receiver !== myUserId) {
-      return;
-    }
     console.log("Received ICE candidate:", data);
 
     const pc = peerConnectionsRef.current[sender];
@@ -317,9 +327,9 @@ const CallRoom = () => {
       return;
     }
 
-    // 아직 remoteDescription이 없으면 candidate 버퍼링
+    // remoteDescription이 없으면 버퍼링
     if (!pc.remoteDescription || !pc.remoteDescription.type) {
-      console.warn(`RemoteDescription not set yet. Buffering candidate from sender=${sender}`);
+      console.warn(`RemoteDescription not set. Buffering candidate from sender=${sender}`);
       if (!pendingCandidatesRef.current[sender]) {
         pendingCandidatesRef.current[sender] = [];
       }
@@ -327,7 +337,7 @@ const CallRoom = () => {
       return;
     }
 
-    // remoteDescription이 세팅되어 있다면 바로 addIceCandidate
+    // 바로 add
     try {
       await pc.addIceCandidate(new RTCIceCandidate(candidate));
     } catch (err) {
@@ -335,9 +345,9 @@ const CallRoom = () => {
     }
   };
 
-  //----------------------------------------------------------------------
-  // 9) 화면 렌더링 (영상/채팅 UI)
-  //----------------------------------------------------------------------
+  //--------------------------------------------------------
+  // 9) 화면 렌더링
+  //--------------------------------------------------------
   return (
     <div className="call-room-container">
       <div className="call-room-user-container">
