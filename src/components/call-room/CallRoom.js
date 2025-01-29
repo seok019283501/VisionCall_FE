@@ -13,6 +13,7 @@ import '../../styles/CallRoom.css';
 const CallRoom = () => {
   const rest_api_url = process.env.REACT_APP_REST_API_URL;
   const access_token = localStorage.getItem("access_token");
+  const myUserId = localStorage.getItem("member_id");
 
   // 방 번호 (예: /call-room/:room_number)
   const { room_number } = useParams();
@@ -21,10 +22,11 @@ const CallRoom = () => {
   const { handleRoomMemberList, roomMember } = useContext(VisionCallContext);
 
   // **내 userId**를 저장
-  const [myUserId, setMyUserId] = useState(null);
+  // const [myUserId, setMyUserId] = useState(null);
 
   // STOMP 클라이언트
   const [stompClient, setStompClient] = useState(null);
+  const stompClientRef = useRef(null);
 
   // 로컬 스트림
   const localStreamRef = useRef(null);
@@ -41,12 +43,13 @@ const CallRoom = () => {
   useEffect(() => {
     const init = async () => {
       try {
+        console.log(myUserId)
         // 1. 내 회원 아이디 조회
-        const res = await axios.get(`${rest_api_url}/api/member`, {
-          headers: { Authorization: access_token },
-        });
-        const user_id = res.data.body.member_id;
-        setMyUserId(user_id);
+        // const res = await axios.get(`${rest_api_url}/api/member`, {
+        //   headers: { Authorization: access_token },
+        // });
+        // const user_id = res.data.body.member_id;
+        // setMyUserId(user_id);
 
         // 2. 방 멤버 목록 조회
         await handleRoomMemberList(room_number);
@@ -62,7 +65,7 @@ const CallRoom = () => {
         }
 
         // 4. STOMP 연결
-        connectStomp(user_id);
+        connectStomp(myUserId);
       } catch (err) {
         console.error('Error in init:', err);
       }
@@ -93,6 +96,9 @@ const CallRoom = () => {
       reconnectDelay: 5000,
       onConnect: () => {
         console.log('STOMP connected');
+        setStompClient(client);
+
+        stompClientRef.current = client;
 
         // 2-1) 구독: Notice (새 유저 입장 알림)
         client.subscribe(`/sub/notice/${room_number}`, (message) => {
@@ -136,7 +142,6 @@ const CallRoom = () => {
     });
 
     client.activate();
-    setStompClient(client);
   };
 
   //--------------------------------------------------------
@@ -152,13 +157,20 @@ const CallRoom = () => {
       createOffer(newUserId);
     }
   };
+  useEffect(()=>{
+    console.log("됐다")
+    console.log(stompClient)
+  },[stompClient])
 
   //--------------------------------------------------------
   // 4) createOffer (기존 유저가 새 유저에게 Offer)
   //--------------------------------------------------------
   const createOffer = async (remoteUserId) => {
-    if (!stompClient) {
-      console.warn('createOffer called but no stompClient. Maybe not connected yet?');
+    console.log("createOffer에서 stompClient 확인:", stompClientRef.current);
+
+    if (!stompClientRef.current || !stompClientRef.current.connected) {
+      console.warn('STOMP not connected yet. Retrying createOffer...');
+      setTimeout(() => createOffer(remoteUserId), 1000);
       return;
     }
     const pc = createPeerConnection(remoteUserId);
@@ -167,7 +179,7 @@ const CallRoom = () => {
       await pc.setLocalDescription(offer);
 
       // Offer 전송: sender=me, receiver=remoteUser
-      stompClient.publish({
+      stompClientRef.current.publish({
         destination: `/pub/offer/${room_number}`,
         body: JSON.stringify({
           sdp: offer,
@@ -198,12 +210,12 @@ const CallRoom = () => {
 
     // ICE candidate → STOMP 전송
     pc.onicecandidate = (event) => {
-      if (!stompClient) {
+      if (!stompClientRef.current) {
         console.warn('onicecandidate fired but no stompClient. Skip publishing ICE...');
         return;
       }
       if (event.candidate) {
-        stompClient.publish({
+        stompClientRef.current.publish({
           destination: `/pub/ice-candidate/${room_number}`,
           body: JSON.stringify({
             candidate: event.candidate,
@@ -239,6 +251,8 @@ const CallRoom = () => {
   //--------------------------------------------------------
   const handleReceiveOffer = async (data) => {
     const { sdp, sender, receiver } = data;
+    console.log(`myUserId: ${myUserId}`)
+    console.log(`receiver: ${receiver}`)
     if (!myUserId || receiver !== myUserId) return;
 
     console.log("Received Offer:", data);
@@ -265,7 +279,7 @@ const CallRoom = () => {
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
-      stompClient.publish({
+      stompClientRef.current.publish({
         destination: `/pub/answer/${room_number}`,
         body: JSON.stringify({
           sdp: answer,
@@ -283,7 +297,9 @@ const CallRoom = () => {
   //--------------------------------------------------------
   const handleReceiveAnswer = async (data) => {
     const { sdp, sender, receiver } = data;
-    if (!myUserId || receiver !== myUserId) return;
+    if (!myUserId || receiver !== myUserId) {
+      return
+    };
 
     console.log("Received Answer:", data);
 
