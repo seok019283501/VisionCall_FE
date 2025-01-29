@@ -2,6 +2,8 @@ import VisionCallProvider from './components/provider/VisionCallProvider';
 import SignIn from './components/auth/SignIn';
 import SignUp from './components/auth/SignUp';
 import Sidebar from './components/sidbars/Sidebar';
+import CallRoom from './components/call-room/CallRoom';
+import Home from './components/Home';
 import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
 import './App.css'
 const App = () => {
@@ -25,8 +27,10 @@ const MainLayout = () => {
       {/* Sidebar는 특정 경로에서만 숨기기 */}
       {!hideSidebar && <Sidebar />}
       <Routes>
+        <Route path="/" element={<Home />} />
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/sign-up" element={<SignUp />} />
+        <Route path='/call-room/:room_number' element={<CallRoom/>}/>
       </Routes>
     </div>
   );

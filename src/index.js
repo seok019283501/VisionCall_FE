@@ -18,11 +18,11 @@ axios.interceptors.response.use(
       console.log("Error data:", err.response.data);
       const refresh_token = localStorage.getItem("refresh_token");
       console.log(refresh_token)
-      if(err.response.status===401){
-        await axios.post(`${rest_api_url}/api/auth/reissue-token` ,{},{
+      if(err.response.data.result.code===401){
+        axios.post(`${rest_api_url}/api/auth/reissue-token` ,{},{
           headers: {
-            Authorization: `${refresh_token}`
-        }}).then(async(res)=>{
+            Authorization: refresh_token
+        }}).then((res)=>{
             console.log(res);
             localStorage.setItem("access_token",res.data.body.access_token);
         }).catch((err)=>{
@@ -38,7 +38,7 @@ axios.interceptors.response.use(
         };
   
         // 중단된 요청을(에러난 요청)을 토큰 갱신 후 재요청
-        const response = await axios.request(err.config);
+        const response = axios.request(err.config);
         return response;
       }
       return Promise.reject(err);
