@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import axios from "axios";
 import '../../styles/Add.css'
+import VisionCallContext from '../provider/VisionCallContext';
 const FriendAdd = (props) => {
   const {handleFriendAddVisible} = props
   const rest_api_url = process.env.REACT_APP_REST_API_URL;
   const access_token = localStorage.getItem("access_token");
+  const {handleFriendListSearch} = useContext(VisionCallContext);
 
   const [email,setEmail] = useState('');
 
@@ -23,6 +25,7 @@ const FriendAdd = (props) => {
     .then(res=>{
       handleFriendAddVisible(false)
       console.log(res.data.body);
+      handleFriendListSearch('');
     }).catch(err=>{
       console.log(err);
     })

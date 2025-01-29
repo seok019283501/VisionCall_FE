@@ -8,7 +8,7 @@ const FriendItem = (props) =>{
   
   const {key,friend_info} = props;
   const location = useLocation();
-  const {roomNumber, handleRoomMemberList} = useContext(VisionCallContext);
+  const {roomNumber, handleRoomMemberList, handleFriendListSearch} = useContext(VisionCallContext);
   const rest_api_url = process.env.REACT_APP_REST_API_URL;
   const access_token = localStorage.getItem("access_token");
 
@@ -24,7 +24,21 @@ const FriendItem = (props) =>{
     })
     .then(res=>{
       console.log(res.data.body);
-      handleRoomMemberList(roomNumber)
+      handleFriendListSearch('');
+    }).catch(err=>{
+      console.log(err);
+    })
+  }
+
+  const handleDelete = () =>{
+    console.log(friend_info.friend_id)
+    axios.delete((`${rest_api_url}/api/friend/${friend_info.friend_id}`),{
+      headers:{
+        Authorization: access_token
+      }
+    })
+    .then(res=>{
+      handleFriendListSearch('');
     }).catch(err=>{
       console.log(err);
     })
@@ -48,6 +62,7 @@ const FriendItem = (props) =>{
                   <input className='invite' type='button' onClick={hanleInvite} value='초대'/>
                   :null
               }
+              <input type='button' className='friend-delete-button' value='삭제' onClick={handleDelete}/>
               
             </div>
         </div>
