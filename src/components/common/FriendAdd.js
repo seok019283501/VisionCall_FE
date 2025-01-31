@@ -15,8 +15,9 @@ const FriendAdd = (props) => {
   };
 
   const handleFriendAdd = async () =>{
+    console.log(email)
     await axios.post((`${rest_api_url}/api/friend`),{
-      to_member_id:email
+      email:email
     },{
       headers:{
         Authorization: access_token

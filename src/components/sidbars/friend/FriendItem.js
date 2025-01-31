@@ -44,6 +44,21 @@ const FriendItem = (props) =>{
     })
   }
 
+  const handleAccpt = () =>{
+    axios.patch((`${rest_api_url}/api/friend/accept`),{
+      "friend_id": friend_info.friend_id
+    },{
+      headers:{
+        Authorization: access_token
+      }
+    })
+    .then(res=>{
+      handleFriendListSearch('');
+    }).catch(err=>{
+      console.log(err);
+    })
+  }
+
   return (
     <>
       <div className="item-container" key={key}>
@@ -63,6 +78,11 @@ const FriendItem = (props) =>{
                   :null
               }
               <input type='button' className='friend-delete-button' value='삭제' onClick={handleDelete}/>
+              {
+                friend_info.request && friend_info.friend_status === "REQUEST" ?
+                <input type='button' value='수락' className='modify-button'onClick={handleAccpt}/>
+                :null
+              }
               
             </div>
         </div>
