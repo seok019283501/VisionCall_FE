@@ -5,7 +5,6 @@ import VisionCallContext from '../provider/VisionCallContext';
 
 const CallRoomUser = (props) => {
   const { call_room_member_info, index } = props;
-  console.log(call_room_member_info)
   const memberId = call_room_member_info.member_id;
   
   return (
